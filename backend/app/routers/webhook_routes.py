@@ -1,5 +1,5 @@
 # backend/app/routers/webhook_routes.py
-from flask import Blueprint
+from flask import Blueprint, render_template
 
 from app.controllers.webhooks_controller import (
     whatsapp_controller,
@@ -31,3 +31,12 @@ webhook_bp.route("/rcs", methods=["POST", "GET"])(
 )
 
 webhook_bp.route("/rcs/status", methods=["POST"])(exempt(rcs_status_controller))
+
+@webhook_bp.route("/rcs/optin", methods=["GET"])
+def rcs_optin():
+    return render_template("rcs_optin.html")
+
+
+@webhook_bp.route("/rcs/optout", methods=["GET"])
+def rcs_optout():
+    return render_template("rcs_optout.html")
