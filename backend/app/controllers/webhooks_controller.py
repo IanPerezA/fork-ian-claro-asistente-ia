@@ -3,6 +3,11 @@ from flask import request
 from twilio.twiml.messaging_response import MessagingResponse
 
 from app.services.cerebro_service import procesar_chat_web
+from app.services.optout_service import (
+    is_stop_command,
+    mark_opt_out,
+    is_opted_out,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +136,27 @@ def _generic_channel_controller(channel_name: str):
     try:
         incoming_msg = (request.values.get("Body", "") or "").strip()
         from_number = request.values.get("From", "")
+
+        # -------------------------------------------------
+        # GLOBAL STOP handling (MVP cross-channel)
+        # -------------------------------------------------
+
+        # Si ya está opt-out → no responder
+        if is_opted_out(from_number):
+            logger.info(f"Opt-out activo para {from_number}")
+            return "", 200
+
+        # Si el usuario envía STOP → guardar y confirmar
+        if is_stop_command(incoming_msg):
+            logger.info(f"STOP recibido de {from_number}")
+            mark_opt_out(from_number)
+
+            resp = MessagingResponse()
+            resp.message(
+                "You have successfully unsubscribed from Claria messages. "
+                "No further responses will be sent unless you initiate a new conversation."
+            )
+            return str(resp), 200, {"Content-Type": "text/xml"}
 
         resp = MessagingResponse()
 
