@@ -4,7 +4,7 @@ import os
 
 MONGO_URI = os.getenv("MONGO_URI")
 client = MongoClient(MONGO_URI)
-db = client.get_default_database()
+db = client["claria_core"]
 
 collection = db["opt_out_global"]
 
